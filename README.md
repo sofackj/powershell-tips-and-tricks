@@ -8,6 +8,38 @@
 Test-NetConnection -ComputerName [dns or ip address] -Port [port number]
 ```
 
+### Curl or wget alternative
+
+#### How it works
+
+```
+# Basics of the command
+Invoke-WebRequest -Uri example.com
+# Use of timeout for non responsive servers (time in seconds)
+Invoke-WebRequest -Uri example.com  -TimeoutSec 5
+```
+
+#### Catch data like status code details
+
+- Without failure
+
+```
+# Catch the status code
+(Invoke-WebRequest https://www.google.com -TimeoutSec 5).StatusCode
+```
+
+- With risk of failure
+
+```
+try { 
+    $web = Invoke-WebRequest https://www.google.com -TimeoutSec 5
+    $statusCode = $web.StatusCode
+  } catch { 
+    $statusCode = $([int]$_.Exception.Response.StatusCode)
+  }
+  Write-Host $statusCode
+```
+
 ### nslookup alternative
 
 - Standard command
@@ -96,6 +128,62 @@ $new_array = $null
 ```
 foreach($i in "a","b","c") {
     Write-Host "${i}"
+}
+```
+
+### Application a bit more complex
+
+- Use of properties
+
+```
+# Reminder
+Test-NetConnection | Get-Member
+```
+
+- Ternary condition
+
+```
+# Store result in a variable
+$result = If ($true) {"OK"} Else {"KO"}
+# Display result with Write-Host
+Write-Host $(If ($true) {"OK"} Else {"KO"})
+```
+
+- Variables concatenation with Write-Host
+
+```
+# For the string -> https://example.com:443/ibm/console/
+$test.ComputerName = example.com
+$test.RemotePort = 443
+Write-Host ("https://"+$test.ComputerName+":"+$test.RemotePort+"/ibm/console/")
+```
+
+- Color strings
+
+```
+# Color with Write-Host
+Write-Host "KO" -foreground red
+# Combine some Write-Host for concatenate strings
+Write-Host "The server is " -nonewline; Write-Host "OK " -foreground green -nonewline; Write-Host "or " -nonewline; Write-Host "KO" -foreground red
+```
+
+- Final Application
+
+```
+foreach($i in "12","67","56","28"){
+    $port = 9043
+    $name = ("example.server"+$i+".fr")
+    Write-host "--------------------------------------------------------"
+    Write-host $name
+    $test = Test-NetConnection -ComputerName $name -Port $port
+    Write-host ("Connection to "+$test.RemoteAddress.IPAddressToString)
+    Write-Host ("https://"+$test.ComputerName+":"+$test.RemotePort+"/ibm/console/ => ") -nonewline
+    If ($test.TcpTestSucceeded) {
+        Write-Host "OK" -foreground green
+    } else {
+        Write-Host "KO" -foreground red
+    }
+        Write-Host
 }
 ```
 
